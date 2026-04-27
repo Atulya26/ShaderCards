@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Dithering, GrainGradient } from "@paper-design/shaders-react";
+import qrSourceUrl from "../assets/design-snaps-qr.png";
 
-const QR_SOURCE = "/assets/design-snaps-qr.png?v=2";
+const QR_SOURCE = qrSourceUrl;
 const MAX_CARD_TILT = 20;
 const COLORS = {
   up: [0, 179, 255],
@@ -272,6 +273,22 @@ function App() {
     if (!gyroRef.current) enableGyro(true);
   }
 
+  useEffect(() => {
+    if (!needsMotionTap || usingGyro) return undefined;
+
+    const enableFromGesture = () => {
+      enableGyro(true);
+    };
+
+    window.addEventListener("click", enableFromGesture, { once: true });
+    window.addEventListener("touchend", enableFromGesture, { once: true });
+
+    return () => {
+      window.removeEventListener("click", enableFromGesture);
+      window.removeEventListener("touchend", enableFromGesture);
+    };
+  }, [enableGyro, needsMotionTap, usingGyro]);
+
   const maskStyle = maskUrl
     ? {
         WebkitMaskImage: `url(${maskUrl})`,
@@ -298,7 +315,7 @@ function App() {
         />
       </div>
       <main className="stage" aria-label="Interactive dither QR card experiment" onPointerDown={handleStagePointerDown}>
-        {needsMotionTap && !usingGyro ? <p className="motion-hint">tap once for motion</p> : null}
+        {needsMotionTap && !usingGyro ? <p className="motion-hint">tap anywhere for motion</p> : null}
         <div className="scene" id="scene">
           <article
             ref={cardRef}
@@ -316,7 +333,7 @@ function App() {
             </header>
 
             <div className="qr-shell">
-              <div className="qr-shader-mask" style={maskStyle} aria-label="QR code">
+              <div className={`qr-shader-mask ${maskUrl ? "is-ready" : ""}`} style={maskStyle} aria-label="QR code">
                 <Dithering
                   width="100%"
                   height="100%"

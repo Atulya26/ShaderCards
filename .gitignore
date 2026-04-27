@@ -4,3 +4,5 @@ dist
 *.log
 .env
 .env.local
+script.js
+assets/qr-source.jpg
