@@ -309,7 +309,7 @@ function App() {
           >
             <header className="card-head">
               <div>
-                <p className="serial">visual designer</p>
+                <p className="serial">Visual Experience Designer</p>
                 <p className="signal">Atulya</p>
               </div>
             </header>
@@ -341,7 +341,8 @@ function App() {
             </div>
 
             <footer className="card-foot">
-              <span>design snaps</span>
+              <span>Design Snaps</span>
+              <span>01/01</span>
             </footer>
           </article>
         </div>
