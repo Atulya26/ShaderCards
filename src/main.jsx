@@ -29,6 +29,10 @@ function screenAngle() {
   return (Math.round((((angle % 360) + 360) % 360) / 90) * 90) % 360;
 }
 
+function canUseTouchMotion() {
+  return window.matchMedia?.("(pointer: coarse)")?.matches || navigator.maxTouchPoints > 0;
+}
+
 function createQrMask() {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -222,6 +226,7 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!canUseTouchMotion()) return;
     if (typeof DeviceOrientationEvent === "undefined") return;
     if (typeof DeviceOrientationEvent.requestPermission === "function") {
       setNeedsMotionTap(true);
@@ -231,8 +236,22 @@ function App() {
     enableGyro();
   }, [enableGyro]);
 
+  const handleMouseMove = useCallback((event) => {
+    if (canUseTouchMotion()) return;
+    setTarget(
+      event.clientX / window.innerWidth,
+      event.clientY / window.innerHeight,
+      true,
+    );
+  }, [setTarget]);
+
+  useEffect(() => {
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [handleMouseMove]);
+
   function handleStagePointerMove(event) {
-    if (gyroRef.current || event.pointerType !== "mouse") return;
+    if (event.pointerType !== "mouse" || canUseTouchMotion()) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     setTarget(
       (event.clientX - bounds.left) / bounds.width,
@@ -247,7 +266,8 @@ function App() {
     setIsActive(false);
   }
 
-  function handleStagePointerDown() {
+  function handleStagePointerDown(event) {
+    if (event.pointerType === "mouse" || !canUseTouchMotion()) return;
     if (!gyroRef.current) enableGyro(true);
   }
 
