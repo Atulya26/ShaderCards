@@ -328,7 +328,7 @@ function App() {
                       height="100%"
                       colorBack="#000000"
                       colorFront={layer.color}
-                      shape="sphere"
+                      shape="warp"
                       type="4x4"
                       size={2.2}
                       speed={0.86}
