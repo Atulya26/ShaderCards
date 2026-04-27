@@ -5,24 +5,15 @@ import qrSourceUrl from "../assets/design-snaps-qr.png";
 
 const QR_SOURCE = qrSourceUrl;
 const MAX_CARD_TILT = 20;
-const COLORS = {
-  up: [0, 179, 255],
-  right: [255, 38, 0],
-  down: [149, 0, 255],
-  left: [0, 255, 179],
-};
+const SHADER_LAYERS = [
+  { key: "base", color: "#00b3ff", variable: "--shader-base" },
+  { key: "right", color: "#ff2600", variable: "--shader-right" },
+  { key: "down", color: "#9500ff", variable: "--shader-down" },
+  { key: "left", color: "#00ffb3", variable: "--shader-left" },
+];
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const lerp = (from, to, amount) => from + (to - from) * amount;
-const toRgb = (color) => `rgb(${color[0]} ${color[1]} ${color[2]})`;
-
-function mixRgb(a, b, amount) {
-  return [
-    Math.round(lerp(a[0], b[0], amount)),
-    Math.round(lerp(a[1], b[1], amount)),
-    Math.round(lerp(a[2], b[2], amount)),
-  ];
-}
 
 function angleDelta(value, base) {
   return ((((value - base) % 360) + 540) % 360) - 180;
@@ -36,32 +27,6 @@ function normalizedTilt(value, deadZone, max) {
 function screenAngle() {
   const angle = screen.orientation?.angle ?? window.orientation ?? 0;
   return (Math.round((((angle % 360) + 360) % 360) / 90) * 90) % 360;
-}
-
-function directionalColor(pointer) {
-  const dx = pointer.x - 0.5;
-  const dy = pointer.y - 0.5;
-  const intensity = clamp(Math.hypot(dx, dy) * 2.35, 0, 1);
-  const weights = [
-    { color: COLORS.up, value: Math.max(-dy, 0) },
-    { color: COLORS.right, value: Math.max(dx, 0) },
-    { color: COLORS.down, value: Math.max(dy, 0) },
-    { color: COLORS.left, value: Math.max(-dx, 0) },
-  ];
-  const total = weights.reduce((sum, item) => sum + item.value, 0);
-
-  if (total < 0.001) return "#00b3ff";
-
-  const directional = weights.reduce(
-    (rgb, item) => [
-      rgb[0] + item.color[0] * (item.value / total),
-      rgb[1] + item.color[1] * (item.value / total),
-      rgb[2] + item.color[2] * (item.value / total),
-    ],
-    [0, 0, 0],
-  );
-
-  return toRgb(mixRgb(COLORS.up, directional, intensity));
 }
 
 function createQrMask() {
@@ -105,11 +70,8 @@ function App() {
   const orientationBaseRef = useRef(null);
   const targetRef = useRef({ x: 0.5, y: 0.5 });
   const pointerRef = useRef({ x: 0.5, y: 0.5 });
-  const colorClockRef = useRef(0);
-  const lastColorRef = useRef("#00b3ff");
   const gyroRef = useRef(false);
   const [maskUrl, setMaskUrl] = useState("");
-  const [colorFront, setColorFront] = useState("#00b3ff");
   const [isActive, setIsActive] = useState(false);
   const [usingGyro, setUsingGyro] = useState(false);
   const [needsMotionTap, setNeedsMotionTap] = useState(false);
@@ -132,16 +94,14 @@ function App() {
     card.style.setProperty("--move-x", `${(tiltX * 14).toFixed(1)}px`);
     card.style.setProperty("--move-y", `${(tiltY * 14).toFixed(1)}px`);
     card.style.setProperty("--shadow-x", `${((0.5 - nextPointer.x) * 28).toFixed(1)}px`);
-
-    const now = performance.now();
-    if (now - colorClockRef.current > 72) {
-      const nextColor = directionalColor(nextPointer);
-      if (nextColor !== lastColorRef.current) {
-        lastColorRef.current = nextColor;
-        setColorFront(nextColor);
-      }
-      colorClockRef.current = now;
-    }
+    const motionStrength = clamp(Math.hypot(tiltX, tiltY), 0, 1);
+    const bluePresence = (1 - motionStrength * 0.84) + clamp(-tiltY, 0, 1) * 0.9;
+    card.style.setProperty("--shader-base", `${clamp(bluePresence, 0.16, 1).toFixed(3)}`);
+    card.style.setProperty("--shader-right", `${clamp(tiltX, 0, 1).toFixed(3)}`);
+    card.style.setProperty("--shader-left", `${clamp(-tiltX, 0, 1).toFixed(3)}`);
+    card.style.setProperty("--shader-down", `${clamp(tiltY, 0, 1).toFixed(3)}`);
+    card.style.setProperty("--shader-pan-x", `${(tiltX * 7).toFixed(1)}%`);
+    card.style.setProperty("--shader-pan-y", `${(tiltY * 7).toFixed(1)}%`);
   }, []);
 
   const setTarget = useCallback((x, y, active = true) => {
@@ -356,18 +316,27 @@ function App() {
 
             <div className="qr-shell">
               <div className={`qr-shader-mask ${maskUrl ? "is-ready" : ""}`} style={maskStyle} aria-label="QR code">
-                <Dithering
-                  width="100%"
-                  height="100%"
-                  colorBack="#000000"
-                  colorFront={colorFront}
-                  shape="sphere"
-                  type="4x4"
-                  size={2.2}
-                  speed={0.86}
-                  scale={0.88}
-                  maxPixelCount={1200000}
-                />
+                {SHADER_LAYERS.map((layer) => (
+                  <div
+                    className="qr-shader-layer"
+                    key={layer.key}
+                    style={{ "--layer-opacity": `var(${layer.variable})` }}
+                    aria-hidden="true"
+                  >
+                    <Dithering
+                      width="100%"
+                      height="100%"
+                      colorBack="#000000"
+                      colorFront={layer.color}
+                      shape="sphere"
+                      type="4x4"
+                      size={2.2}
+                      speed={0.86}
+                      scale={0.88}
+                      maxPixelCount={1200000}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 
