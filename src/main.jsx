@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Dithering, GrainGradient } from "@paper-design/shaders-react";
 import qrSourceUrl from "../assets/design-snaps-qr.png";
@@ -7,9 +7,9 @@ const QR_SOURCE = qrSourceUrl;
 const MAX_CARD_TILT = 20;
 const COLORS = {
   up: [0, 179, 255],
-  right: [0, 255, 179],
-  down: [255, 38, 0],
-  left: [149, 0, 255],
+  right: [255, 38, 0],
+  down: [149, 0, 255],
+  left: [0, 255, 179],
 };
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -105,18 +105,17 @@ function App() {
   const orientationBaseRef = useRef(null);
   const targetRef = useRef({ x: 0.5, y: 0.5 });
   const pointerRef = useRef({ x: 0.5, y: 0.5 });
+  const colorClockRef = useRef(0);
+  const lastColorRef = useRef("#00b3ff");
   const gyroRef = useRef(false);
   const [maskUrl, setMaskUrl] = useState("");
-  const [pointer, setPointer] = useState({ x: 0.5, y: 0.5 });
+  const [colorFront, setColorFront] = useState("#00b3ff");
   const [isActive, setIsActive] = useState(false);
   const [usingGyro, setUsingGyro] = useState(false);
   const [needsMotionTap, setNeedsMotionTap] = useState(false);
 
-  const colorFront = useMemo(() => directionalColor(pointer), [pointer]);
-
   const applyTilt = useCallback((nextPointer) => {
     pointerRef.current = nextPointer;
-    setPointer(nextPointer);
 
     const card = cardRef.current;
     if (!card) return;
@@ -133,6 +132,16 @@ function App() {
     card.style.setProperty("--move-x", `${(tiltX * 14).toFixed(1)}px`);
     card.style.setProperty("--move-y", `${(tiltY * 14).toFixed(1)}px`);
     card.style.setProperty("--shadow-x", `${((0.5 - nextPointer.x) * 28).toFixed(1)}px`);
+
+    const now = performance.now();
+    if (now - colorClockRef.current > 72) {
+      const nextColor = directionalColor(nextPointer);
+      if (nextColor !== lastColorRef.current) {
+        lastColorRef.current = nextColor;
+        setColorFront(nextColor);
+      }
+      colorClockRef.current = now;
+    }
   }, []);
 
   const setTarget = useCallback((x, y, active = true) => {
@@ -149,8 +158,8 @@ function App() {
       orientationBaseRef.current = { gamma, beta };
     }
 
-    const deltaGamma = clamp(angleDelta(gamma, orientationBaseRef.current.gamma), -32, 32);
-    const deltaBeta = clamp(angleDelta(beta, orientationBaseRef.current.beta), -28, 28);
+    const deltaGamma = clamp(angleDelta(gamma, orientationBaseRef.current.gamma), -42, 42);
+    const deltaBeta = clamp(angleDelta(beta, orientationBaseRef.current.beta), -38, 38);
     let tiltX = deltaGamma;
     let tiltY = deltaBeta;
 
@@ -166,8 +175,8 @@ function App() {
     }
 
     setTarget(
-      0.5 + normalizedTilt(tiltX, 1.2, 18) * 0.42,
-      0.5 + normalizedTilt(tiltY, 1.4, 16) * 0.42,
+      0.5 + normalizedTilt(tiltX, 0.45, 12) * 0.44,
+      0.5 + normalizedTilt(tiltY, 0.65, 11) * 0.44,
       true,
     );
   }, [setTarget]);
@@ -178,7 +187,7 @@ function App() {
 
   useEffect(() => {
     const tick = () => {
-      const ease = gyroRef.current ? 0.22 : 0.22;
+      const ease = gyroRef.current ? 0.18 : 0.22;
       const current = pointerRef.current;
       const target = targetRef.current;
       const next = {
@@ -219,6 +228,15 @@ function App() {
     if (typeof DeviceOrientationEvent === "undefined") {
       if (showAlerts) window.alert("This browser is not exposing device orientation events.");
       return false;
+    }
+
+    if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+      try {
+        await DeviceMotionEvent.requestPermission();
+      } catch {
+        setNeedsMotionTap(true);
+        return false;
+      }
     }
 
     if (typeof DeviceOrientationEvent.requestPermission === "function") {
@@ -281,10 +299,14 @@ function App() {
     };
 
     window.addEventListener("click", enableFromGesture, { once: true });
+    window.addEventListener("pointerdown", enableFromGesture, { once: true });
+    window.addEventListener("touchstart", enableFromGesture, { once: true });
     window.addEventListener("touchend", enableFromGesture, { once: true });
 
     return () => {
       window.removeEventListener("click", enableFromGesture);
+      window.removeEventListener("pointerdown", enableFromGesture);
+      window.removeEventListener("touchstart", enableFromGesture);
       window.removeEventListener("touchend", enableFromGesture);
     };
   }, [enableGyro, needsMotionTap, usingGyro]);
@@ -339,11 +361,11 @@ function App() {
                   height="100%"
                   colorBack="#000000"
                   colorFront={colorFront}
-                  shape="warp"
+                  shape="sphere"
                   type="4x4"
-                  size={2}
-                  speed={0.44}
-                  scale={1.04}
+                  size={2.2}
+                  speed={0.86}
+                  scale={0.88}
                   maxPixelCount={1200000}
                 />
               </div>
