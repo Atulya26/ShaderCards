@@ -231,9 +231,9 @@ function App() {
     enableGyro();
   }, [enableGyro]);
 
-  function handlePointerMove(event) {
-    if (gyroRef.current || !cardRef.current) return;
-    const bounds = cardRef.current.getBoundingClientRect();
+  function handleStagePointerMove(event) {
+    if (gyroRef.current || event.pointerType !== "mouse") return;
+    const bounds = event.currentTarget.getBoundingClientRect();
     setTarget(
       (event.clientX - bounds.left) / bounds.width,
       (event.clientY - bounds.top) / bounds.height,
@@ -296,16 +296,19 @@ function App() {
           maxPixelCount={5000000}
         />
       </div>
-      <main className="stage" aria-label="Interactive dither QR card experiment" onPointerDown={handleStagePointerDown}>
+      <main
+        className="stage"
+        aria-label="Interactive dither QR card experiment"
+        onPointerDown={handleStagePointerDown}
+        onPointerMove={handleStagePointerMove}
+        onPointerLeave={resetPointer}
+      >
         {needsMotionTap && !usingGyro ? <p className="motion-hint">tap anywhere for motion</p> : null}
         <div className="scene" id="scene">
           <article
             ref={cardRef}
             className={`qr-card ${isActive ? "is-active" : ""}`}
             aria-label="Shader styled QR code card"
-            onPointerEnter={() => setIsActive(true)}
-            onPointerMove={handlePointerMove}
-            onPointerLeave={resetPointer}
           >
             <header className="card-head">
               <div>
