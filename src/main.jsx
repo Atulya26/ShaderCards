@@ -304,7 +304,7 @@ function App() {
         <GrainGradient
           width="100%"
           height="100%"
-          colors={["#7300ff", "#eba8ff", "#00bfff", "#2b00ff", "#ffe77a", "#ff9a1f", "#ff4d00"]}
+          colors={["#7300ff", "#eba8ff", "#00bfff"]}
           colorBack="#000000"
           softness={0.5}
           intensity={0.5}
