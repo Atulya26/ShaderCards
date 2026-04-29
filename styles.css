@@ -30,20 +30,28 @@
 html {
   width: 100%;
   height: 100%;
+  height: -webkit-fill-available;
   min-height: 100%;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
-  background: #090611;
+  background:
+    radial-gradient(90% 70% at 92% 4%, rgba(0, 191, 255, 0.55), transparent 48%),
+    radial-gradient(80% 78% at 8% 96%, rgba(115, 0, 255, 0.62), transparent 54%),
+    #21113f;
 }
 
 body {
   width: 100%;
   min-height: 100%;
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   min-height: 100dvh;
   margin: 0;
   overflow: hidden;
-  background: #090611;
+  background:
+    radial-gradient(90% 70% at 92% 4%, rgba(0, 191, 255, 0.55), transparent 48%),
+    radial-gradient(80% 78% at 8% 96%, rgba(115, 0, 255, 0.62), transparent 54%),
+    #21113f;
   color: var(--paper);
   font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   overscroll-behavior: none;
@@ -54,6 +62,7 @@ body {
   width: 100%;
   min-height: 100%;
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   min-height: 100dvh;
   overflow: hidden;
 }
@@ -63,7 +72,10 @@ body {
   inset: -12vh 0;
   z-index: 0;
   overflow: hidden;
-  background: #000000;
+  background:
+    radial-gradient(90% 70% at 92% 4%, rgba(0, 191, 255, 0.55), transparent 48%),
+    radial-gradient(80% 78% at 8% 96%, rgba(115, 0, 255, 0.62), transparent 54%),
+    #21113f;
   pointer-events: none;
 }
 
