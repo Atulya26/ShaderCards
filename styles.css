@@ -33,16 +33,17 @@ html {
   min-height: 100%;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
-  background: #000000;
+  background: #090611;
 }
 
 body {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   overflow: hidden;
-  background: #000000;
+  background: #090611;
   color: var(--paper);
   font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   overscroll-behavior: none;
@@ -51,14 +52,15 @@ body {
 
 #root {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
 }
 
 .grain-gradient-bg {
   position: fixed;
-  inset: 0;
+  inset: -12vh 0;
   z-index: 0;
   overflow: hidden;
   background: #000000;
@@ -80,7 +82,6 @@ body {
   min-height: 100vh;
   min-height: 100svh;
   min-height: 100dvh;
-  height: 100dvh;
   display: grid;
   place-items: center;
   padding:
@@ -109,6 +110,7 @@ body {
   width: 100%;
   min-width: 0;
   transform-style: preserve-3d;
+  transform-origin: center;
 }
 
 .qr-card {
@@ -388,6 +390,10 @@ body {
     border-radius: 22px;
   }
 
+  .scene {
+    transform: scale(0.9);
+  }
+
   .signal {
     font-size: clamp(2.35rem, 13vw, 3.2rem);
   }
@@ -395,13 +401,6 @@ body {
   .serial,
   .card-foot {
     font-size: clamp(0.82rem, 3.7vw, 1rem);
-  }
-}
-
-@supports (-webkit-touch-callout: none) {
-  body {
-    position: fixed;
-    inset: 0;
   }
 }
 
