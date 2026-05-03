@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Dithering, GrainGradient } from "@paper-design/shaders-react";
+import { Dithering } from "@paper-design/shaders-react";
 import qrSourceUrl from "../assets/design-snaps-qr.png";
 
 const QR_SOURCE = qrSourceUrl;
@@ -300,22 +300,7 @@ function App() {
 
   return (
     <>
-      <div className="grain-gradient-bg" aria-hidden="true">
-        <GrainGradient
-          width="100%"
-          height="100%"
-          colors={["#7300ff", "#eba8ff", "#00bfff"]}
-          colorBack="#000000"
-          softness={0.5}
-          intensity={0.5}
-          noise={0.25}
-          shape="corners"
-          speed={1}
-          scale={1}
-          minPixelRatio={1.5}
-          maxPixelCount={5000000}
-        />
-      </div>
+      <div className="ascii-art-bg" aria-hidden="true" />
       <main
         className="stage"
         aria-label="Interactive dither QR card experiment"
